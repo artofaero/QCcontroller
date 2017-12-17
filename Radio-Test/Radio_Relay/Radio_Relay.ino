@@ -10,15 +10,6 @@ RF24 radio(7,8);
 /**********************************************************/
 byte addresses[][6] = {"1Node","2Node"};
 
-//struct dataStruct{
-//  int command;
-//  int joystick;
-//  int axis;
-////  float input;
-////  String inputStr;
-//  int endChar;
-//}myData;
-
 void setup() {
   Serial.begin(250000);
   
