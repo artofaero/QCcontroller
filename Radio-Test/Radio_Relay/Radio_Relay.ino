@@ -10,14 +10,14 @@ RF24 radio(7,8);
 /**********************************************************/
 byte addresses[][6] = {"1Node","2Node"};
 
-struct dataStruct{
-  int command;
-  int joystick;
-  int axis;
-//  float input;
-//  String inputStr;
-  int endChar;
-}myData;
+//struct dataStruct{
+//  int command;
+//  int joystick;
+//  int axis;
+////  float input;
+////  String inputStr;
+//  int endChar;
+//}myData;
 
 void setup() {
   Serial.begin(250000);
@@ -44,48 +44,15 @@ void setup() {
 }
 
 void loop() {
-//  int joystick;
-//  int axis;
-//  float input;
-//  String inputStr;
-//  int command;
-//  int endChar;
+
+byte data;
 
   while(1){
-//    radio.stopListening();
-
-    // Clear previous input values
-    myData.command = 0;
-    myData.joystick = 0;
-    myData.axis = 0;
-//    myData.input = 0;
-//    myData.inputStr = '0';
-    myData.endChar = 0;
     
     if(Serial.available()){
     
-      myData.command = Serial.read();
-        
-      if(myData.command == '<'){
-        myData.joystick = Serial.parseInt();
-        myData.axis = Serial.parseInt();
-        myData.input = Serial.parseFloat();
-        myData.endChar = Serial.read();
-
-//        inputStr = String(input);
-
-        radio.write(&myData, sizeof(myData));
-        
-//        radio.write(&command,1);
-//        radio.write(&joystick,1);
-//        radio.write(&axis,1);
-        //radio.write(&input,sizeof(input));
-//        radio.write(&endChar,1);
-//        radio.startListening();
-      }
-      else {
-        radio.write(&myData,sizeof(myData));
-      }
+      data = Serial.read();
+      radio.write(&data, sizeof(data));      
     }
   }
 }
