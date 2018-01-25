@@ -12,7 +12,7 @@ import math
 
 # Open USB Port
 ser = serial.Serial()
-ser.baudrate = 250000
+ser.baudrate = 115200
 ser.port = 'COM4'
 ser.timeout = 0
 # ser.write_timeout = 0.1
@@ -60,17 +60,22 @@ def write_ctrl(xIn, deadzone, scale_factor, joystick, axis):
 	xIn = str(round(xIn,3)).encode()
 	# Write Left Joy, y-axis
 	ser.write(b'<')
+	ser.write(b'!')
+	ser.write(b' ')
 	ser.write(joystick.encode()) # Send Joystick Identifier
 	ser.write(b' ') 
 	ser.write(axis.encode()) # Send Axis Identifier
 	ser.write(b' ')
 	ser.write(xIn) # Send Output
+	ser.write(b' ')
+	ser.write(b'?')
 	ser.write(b'>')
 
 def write_button(button):
 	# button = Identifies which button is outputting. String such as a, b, y, x, etc.
+	ser.write(b'<')
 	ser.write(button.encode())
-	# ser.write(b'>')
+	ser.write(b'>')
 		
 
 # Initialize Control Loop Variables
@@ -84,11 +89,14 @@ scale_factor = float(1/(1-deadzone))
 check = ' '
 response = ' '
 inBuff = 0
+message = ' '
+secs = time.clock()
+samplerate = 0.0005
 
 # Control Loop
 while key != 'q':
 	for event in pygame.event.get():
-		if event.type == pygame.JOYAXISMOTION:
+		if (event.type == pygame.JOYAXISMOTION and samplerate <= time.clock() - secs):
 			if event.axis == 1: # Left Joystick, y-axis
 				yl = event.value
 				write_ctrl(yl, deadzone, scale_factor, '1', '1')
@@ -105,6 +113,8 @@ while key != 'q':
 				xr = event.value
 				write_ctrl(xr, deadzone, scale_factor, '2', '2')
 			# End
+			secs = time.clock()
+		# End
 				
 		# Press A to Flash
 		if event.type == pygame.JOYBUTTONDOWN:
@@ -133,17 +143,23 @@ while key != 'q':
 		# End	
 	# End	
 	
-	inBuff = ser.in_waiting
-	if inBuff == 5:
-		check = ser.read(5)
-		check = check.decode("utf-8")
-		print(check)
+	# inBuff = ser.in_waiting
+	# if inBuff == 5:
+		# check = ser.read(5)
+		# check = check.decode("utf-8")
+		# print(check)
 		
-		if check == 'hello':
-			ser.write(b'-')
-			ser.write(b'hi')
-			ser.write(b'-')
+		# if check == 'hello':
+			# ser.write(b'-')
+			# ser.write(b'hi')
+			# ser.write(b'-')
+			
 		# End
+	# End
+	
+	if ser.in_waiting > 0:
+		message = ser.read(ser.in_waiting)
+		print(message.decode("utf-8"))
 	# End
 	
 # End control loop

@@ -10,8 +10,14 @@ RF24 radio(7,8);
 /**********************************************************/
 byte addresses[][6] = {"1Node","2Node"};
 
+/****************** Data Handling Globals ***************/
+const byte numChars = 32;
+char buff[numChars];
+boolean newData = false;
+/********************************************************/
+
 void setup() {
-  Serial.begin(250000);
+  Serial.begin(115200);
   
   radio.begin();
 
@@ -29,21 +35,62 @@ void setup() {
     radio.openReadingPipe(1,addresses[1]);
   }
   
-  // Start the radio listening for data
+  // Get the radio ready to send data
   radio.stopListening();
 
 }
 
 void loop() {
 
-byte data;
+readIntoBuff();
+writeNewData();
+//reportData();
+}
 
-  while(1){
-    
-    if(Serial.available()){
-    
-      data = Serial.read();
-      radio.write(&data, sizeof(data));      
+void readIntoBuff(){
+  static boolean readInProgress = false;
+  static byte ndx = 0;
+  char startMark = '<';
+  char endMark = '>';
+  char data;
+
+  while(Serial.available() > 0 && newData == false) {
+    data = Serial.read();
+
+    if(readInProgress == true) {
+      if(data != endMark){
+        buff[ndx] = data;
+        ndx++;
+        if (ndx >= numChars){
+          ndx = numChars - 1;
+        }
+      }
+      else {
+        buff[ndx] = '\0';
+        readInProgress = false;
+        ndx = 0;
+        newData = true;
+      }
+    }
+    else if(data == startMark){
+      readInProgress = true;
     }
   }
 }
+
+void writeNewData(){
+  if(newData == true){
+    radio.write(&buff, sizeof(buff));
+    newData = false;
+    memset(buff, 0, sizeof(buff));
+  }
+}
+
+void reportData(){
+  if(newData == true){
+    Serial.write(buff);
+    newData = false;
+  }
+}
+
+
